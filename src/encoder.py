@@ -83,8 +83,7 @@ class Encoder:
                 else:
                     new_word.append(word[i])
                     i += 1
-            new_word = tuple(new_word)
-            word = new_word
+            word = tuple(new_word)
             if len(word) == 1:
                 break
             else:

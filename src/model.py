@@ -55,7 +55,7 @@ def softmax(x, axis=-1):
 def gelu(x):
     return 0.5*x*(1+tf.tanh(np.sqrt(2/np.pi)*(x+0.044715*tf.pow(x, 3))))
 
-def norm(x, scope, *, axis=-1, epsilon=1e-5):
+def norm(x, scope,  axis=-1, epsilon=1e-5):
     """Normalize to mean = 0, std = 1, then do a diagonal affine transform."""
     with tf.compat.v1.variable_scope(scope):
         n_state = x.shape[-1].value
@@ -77,7 +77,7 @@ def merge_states(x):
     *start, a, b = shape_list(x)
     return tf.reshape(x, start + [a*b])
 
-def conv1d(x, scope, nf, *, w_init_stdev=0.02):
+def conv1d(x, scope, nf,  w_init_stdev=0.02):
     with tf.compat.v1.variable_scope(scope):
         *start, nx = shape_list(x)
         w = tf.compat.v1.get_variable('w', [1, nx, nf], initializer=tf.compat.v1.random_normal_initializer(stddev=w_init_stdev))
@@ -85,7 +85,7 @@ def conv1d(x, scope, nf, *, w_init_stdev=0.02):
         c = tf.reshape(tf.matmul(tf.reshape(x, [-1, nx]), tf.reshape(w, [-1, nf]))+b, start+[nf])
         return c
 
-def attention_mask(nd, ns, *, dtype):
+def attention_mask(nd, ns,  dtype):
     """1's in the lower triangle, counting from the lower right corner.
 
     Same as tf.matrix_band_part(tf.ones([nd, ns]), -1, ns-nd), but doesn't produce garbage on TPUs.
@@ -96,7 +96,7 @@ def attention_mask(nd, ns, *, dtype):
     return tf.cast(m, dtype)
 
 
-def attn(x, scope, n_state, *, past, hparams):
+def attn(x, scope, n_state,  past, hparams):
     assert x.shape.ndims == 3  # Should be [batch, sequence, features]
     assert n_state % hparams.n_head == 0
     if past is not None:
@@ -142,7 +142,7 @@ def attn(x, scope, n_state, *, past, hparams):
         return a, present
 
 
-def mlp(x, scope, n_state, *, hparams):
+def mlp(x, scope, n_state,  hparams):
     with tf.compat.v1.variable_scope(scope):
         nx = x.shape[-1].value
         h = gelu(conv1d(x, 'c_fc', n_state))
@@ -150,7 +150,7 @@ def mlp(x, scope, n_state, *, hparams):
         return h2
 
 
-def block(x, scope, *, past, hparams):
+def block(x, scope, past, hparams):
     with tf.compat.v1.variable_scope(scope):
         nx = x.shape[-1].value
         a, present = attn(norm(x, 'ln_1'), 'attn', nx, past=past, hparams=hparams)
@@ -159,7 +159,7 @@ def block(x, scope, *, past, hparams):
         x = x + m
         return x, present
 
-def past_shape(*, hparams, batch_size=None, sequence=None):
+def past_shape(hparams, batch_size=None, sequence=None):
     return [batch_size, hparams.n_layer, 2, hparams.n_head, sequence, hparams.n_embd // hparams.n_head]
 
 def expand_tile(value, size):
